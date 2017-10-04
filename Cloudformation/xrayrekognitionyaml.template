@@ -1,0 +1,196 @@
+#Copyright 2017-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+#Licensed under the Apache License, Version 2.0 (the "License"). 
+#You may not use this file except in compliance with the License. 
+#A copy of the License is located at http://aws.amazon.com/apache2.0/ or in the "license" file accompanying this file. 
+#This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+#See the License for the specific language governing permissions and limitations under the License.
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  publics3bucketname:
+    Type: String
+    Description: This parameter is the public s3 bucket that will be accessible from
+      anywhere.
+    MinLength: '1'
+    MaxLength: '21'
+    AllowedPattern: "^[A-Za-z0-9]+$"
+    ConstraintDescription: 'Malformed input-Parameter: publics3bucketname must match
+      pattern ^[A-Za-z0-9]+$'
+Resources:
+  s3standbucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: publics3bucketname
+      WebsiteConfiguration:
+        IndexDocument: photoform.html
+      AccessControl: Private
+  s3xrayrekognition:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: imagestoragexray
+      AccessControl: Private
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - "*"
+          AllowedMethods:
+          - POST
+          - GET
+          - PUT
+          - DELETE
+          - HEAD
+          AllowedOrigins:
+          - "*"
+          ExposedHeaders:
+          - Etag
+          Id: corsvbk
+  s3policystandbucket:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: s3standbucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: PublicReadGetObject
+          Effect: Allow
+          Principal: "*"
+          Action: s3:GetObject
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: s3standbucket
+              - "/*"
+  CognitoIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: cognito-identity.amazonaws.com
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: unauthenticated
+      Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      - arn:aws:iam::aws:policy/AmazonRekognitionFullAccess
+      - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      - arn:aws:iam::aws:policy/AWSLambdaExecute
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+      RoleName: cognitoxrayrekognitionrole
+  LambdaIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      - arn:aws:iam::aws:policy/AmazonRekognitionFullAccess
+      - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      - arn:aws:iam::aws:policy/AWSLambdaExecute
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+      RoleName: lambdaxrayrekognitionrole
+  S3ManagedPolicyRWL:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Stmt1505428188000
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:ListBucket
+          - s3:PutObject
+          - s3:CreateBucket
+          - s3:ListObjects
+          - s3:PutObjectAcl
+          - s3:DeleteObject
+          Resource:
+          - arn:aws:s3:::imagestoragexray
+          - arn:aws:s3:::imagestoragexray/*
+      PolicyName: "AmazonS3ReadWriteListAccess"
+      Roles:
+        -
+          Ref: "CognitoIAMRole"
+        -
+          Ref: "LambdaIAMRole"
+  CognitoUnauthPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: cognitounauthpoolxrayrekognition
+      AllowUnauthenticatedIdentities: true
+  CognitoUnauthRoleattach:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId:
+        Ref: CognitoUnauthPool
+      Roles:
+        unauthenticated:
+          Fn::GetAtt:
+          - CognitoIAMRole
+          - Arn
+        authenticated:
+          Fn::GetAtt:
+          - CognitoIAMRole
+          - Arn
+  CognitoIAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - Ref: CognitoIAMRole
+  LambdaIAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - Ref: LambdaIAMRole
+  Xrayrekognitionlambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: xrayrekognition
+      Code:
+        S3Bucket: lambdacodexrayrekognition
+        S3Key: Archive.zip
+      Handler: xrayrekognition.handler
+      Role:
+        Fn::GetAtt:
+        - LambdaIAMRole
+        - Arn
+      Runtime: nodejs6.10
+      Timeout: '25'
+      TracingConfig:
+        Mode: Active
+  Xraysearchceleblambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: xraysearchceleb
+      Code:
+        S3Bucket: lambdacodexrayrekognition
+        S3Key: Archive.zip
+      Handler: xraysearchceleb.handler
+      Role:
+        Fn::GetAtt:
+        - LambdaIAMRole
+        - Arn
+      Runtime: nodejs6.10
+      Timeout: '25'
+      TracingConfig:
+        Mode: Active
+

@@ -1,0 +1,79 @@
+
+    div.gallery {
+        margin: 5px;
+        border: 1px solid #ccc;
+        float: left;
+        width: 300px;
+    }
+
+    div.gallery:hover {
+        border: 1px solid #777;
+    }
+
+    div.gallery img {
+        width: 100%;
+        height: auto;
+    }
+
+    div.desc {
+        padding: 15px;
+        text-align: center;
+    }
+
+    button.rc {
+        background-color: #008CBA;
+        /* Blue */
+        border: 1px solid black;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        font-size: 16px;
+    }
+
+    button.rcred {
+        background-color: red;
+    }
+
+    input[type=text] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+    }
+
+    button.classybutton {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 16px 32px;
+        text-decoration: none;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+
+    input.inputfile {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+    }
+
+    input.inputfile+label {
+        font-size: 1.25em;
+        font-weight: 700;
+        color: 4CAF50;
+        display: inline-block;
+        border-style: solid;
+    }
+
+    input.inputfile:focus+label,
+    input.inputfile+label:hover {
+        color: red;
+        background-color: white;
+        border: red;
+        border-style: solid;
+    }
