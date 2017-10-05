@@ -4,9 +4,15 @@ You may not use this file except in compliance with the License.
 A copy of the License is located at http://aws.amazon.com/apache2.0/ or in the "license" file accompanying this file.
 This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and limitations under the License.*/
-var albumBucketName = '<appname-imagestoragexray>';//update this
-var resourceRegion = '<region>'; //update this
-var identityPoolId = '<identity_pool_id>'; //update this
+
+var appName = '<appNameHere>';//update this
+var resourceRegion = '<regionHere>'; //update this
+var identityPoolId = '<identityPoolIdHere>'; //update this
+
+
+var albumBucketName = appName+'-imagestoragexray';
+var lambdaToRecognizeFaces = appName+'-xrayrekognition';
+var lambdaToSearchCelebs = appName+'-xraysearchceleb';
 
 AWS.config.update({
     region: resourceRegion,
@@ -110,7 +116,7 @@ function searchCeleb() {
     alert("Celeb name to be searched: " + celebName);
 
     var pullParams = {
-        FunctionName: 'xraysearchceleb',
+        FunctionName: lambdaToSearchCelebs,
         InvocationType: 'RequestResponse',
         LogType: 'None',
         Payload: '{"srcBucket" : "' + albumBucketName + '","searchCeleb" : "' + celebName + '"}'
@@ -146,7 +152,7 @@ function searchCeleb() {
 function recognizePhoto(photoName, photoKey) {
     // create JSON object for parameters for invoking Lambda function
     var pullParams = {
-        FunctionName: 'xrayrekognition',
+        FunctionName: lambdaToRecognizeFaces,
         InvocationType: 'RequestResponse',
         LogType: 'None',
         Payload: '{ "srcBucket" : "' + albumBucketName + '","srcKey" : "' + photoKey + '"}'
