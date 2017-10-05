@@ -53,7 +53,7 @@ python install.py
 ```
 Note: Your appname will be used for naming your CloudFormation stack, public s3 bucket and as a prefix as a prefix to identify all the Lambda functions, Cognito Pool and IAM Roles associated with your app.
 ### b. Get the Cognito Identity Pool Id and update
-1. After the resources are deployed go to your Amazon Cognito console. Go to Federated Identity and go to "<appname>cognitounauthxrayrekognition" Idenity Pool to get the Identity Pool Id.
+1. After the resources are deployed go to your Amazon Cognito console. Go to Federated Identity and go to "appnamecognitounauthxrayrekognition" (where appname is your app's name) Idenity Pool to get the Identity Pool Id.
 
 2. Update Client/xrayoperations.js file with the bucket name, region and Identity Pool Id. The bucket name will be your app's name followed by 'imagestoragexray'. For example, if your app name is cfx, then your albumBucketName will be cfx-imagestoragexray.
 
