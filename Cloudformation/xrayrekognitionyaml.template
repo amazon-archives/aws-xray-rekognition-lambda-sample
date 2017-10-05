@@ -132,11 +132,11 @@ Resources:
           - s3:PutObjectAcl
           - s3:DeleteObject
           Resource:
-            Fn::Join:
+          - Fn::Join:
                 - ''
                 - - 'arn:aws:s3:::'
                   - Ref: s3xrayrekognition
-            Fn::Join:
+          - Fn::Join:
               - ''
               - - 'arn:aws:s3:::'
                 - Ref: s3xrayrekognition
