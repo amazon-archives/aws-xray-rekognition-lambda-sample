@@ -8,10 +8,10 @@
 
 import os
 
-publics3bucketname = raw_input("Enter the name of your public S3 bucket that you entered before:")
+appname = raw_input("Enter your app name:")
 
 #Copy over the client code to the public S3 bucket
 pathclient = "../"
 os.chdir(pathclient)
-clientcodecopycommand = "aws s3 cp Client s3://"+publics3bucketname+" --recursive --exclude \"*.DS_Store\" --acl=public-read"
+clientcodecopycommand = "aws s3 cp Client s3://"+appname+" --recursive --exclude \"*.DS_Store\" --acl=public-read"
 os.system(clientcodecopycommand)

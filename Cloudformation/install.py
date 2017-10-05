@@ -8,13 +8,11 @@
 
 import os
 
-publics3bucketname = raw_input("Enter a name for your public S3 bucket:")
+appname = raw_input("Enter a unique name for your app {pattern:^[a-z0-9]+$}:")
 
-print("publics3bucketname: "+publics3bucketname)
+print("appname: "+appname)
 
-cloudformationstackname = raw_input("Enter name for your Cloudformation stack:")
-
-print("cloudformationstackname: "+cloudformationstackname)
+print("Your appname:"+appname+" will be used for naming your CloudFormation stack, public s3 bucket and as a prefix as a prefix to identify all the Lambda functions, Cognito Pool and IAM Roles associated with your app")
 
 pathinitial = "../Lambda/"
 os.chdir(pathinitial)
@@ -39,7 +37,7 @@ print("Deploying resources from the Cloudformation template")
 pathcloudformation = "../Cloudformation"
 os.chdir(pathcloudformation)
 
-cfcommand = "aws cloudformation deploy --template-file xrayrekognitionyaml.template --stack-name "+cloudformationstackname+" --parameter-overrides publics3bucketname="+publics3bucketname+" --capabilities CAPABILITY_NAMED_IAM"
+cfcommand = "aws cloudformation deploy --template-file xrayrekognitionyaml.template --stack-name "+appname+" --parameter-overrides appname="+appname+" --capabilities CAPABILITY_NAMED_IAM"
 print(cfcommand)
 os.system(cfcommand)
 
@@ -50,7 +48,3 @@ deletes3lambdabucket = "aws s3 rb s3://lambdacodexrayrekognition --force"
 os.system(deletes3lambdabucket)
 
 print("Deleted temporary s3 bucket")
-
-
-
-

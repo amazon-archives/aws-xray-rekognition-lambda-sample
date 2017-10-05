@@ -8,13 +8,22 @@
 
 import os
 
-#Empty all s3 buckets first
-deletepublicbucketfiles = "aws s3 rm s3://publicbucketxray --recursive --only-show-errors"
-os.system(deletepublicbucketfiles)
+appname = raw_input("Enter your app name {pattern:^[a-z0-9]+$}:")
 
-deleteimages = "aws s3 rm s3://imagestoragexray --recursive --only-show-errors"
+#Empty all s3 buckets first
+deletepublicbucketfiles = "aws s3 rm s3://"+appname+" --recursive --only-show-errors"
+print(deletepublicbucketfiles)
+os.system(deletepublicbucketfiles)
+print("Deleted the public s3 bucket")
+
+#Deleting s3 bucket with images
+deleteimages = "aws s3 rm s3://"+appname+"-imagestoragexray --recursive --only-show-errors"
+print(deleteimages)
 os.system(deleteimages)
+print("Deleted s3 bucket with images")
 
 #delete cloudformation stack
-deletecloudformationstack = "aws cloudformation delete-stack --stack-name xrayrekognitionstack"
+deletecloudformationstack = "aws cloudformation delete-stack --stack-name "+appname
+print(deletecloudformationstack)
 os.system(deletecloudformationstack)
+print("Deleted your app's CloudFormation stack. Please verify whether the stack is completely deleted by logging in to your CloudFormation console at https://console.amazon.com/cloudformation")

@@ -4,9 +4,9 @@ You may not use this file except in compliance with the License.
 A copy of the License is located at http://aws.amazon.com/apache2.0/ or in the "license" file accompanying this file.
 This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and limitations under the License.*/
-var albumBucketName = 'imagestoragexray';
-var resourceRegion = 'us-east-1'; //update this
-var identityPoolId = 'us-east-1:e5190a73-7059-4f6f-8f78-1ce9657e9724'; //update this
+var albumBucketName = '<cloudformationstackname-imagestoragexray>';//update this
+var resourceRegion = '<region>'; //update this
+var identityPoolId = '<identity_pool_id>'; //update this
 
 AWS.config.update({
     region: resourceRegion,

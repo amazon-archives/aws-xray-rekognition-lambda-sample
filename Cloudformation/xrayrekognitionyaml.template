@@ -1,35 +1,37 @@
 #Copyright 2017-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-#Licensed under the Apache License, Version 2.0 (the "License"). 
-#You may not use this file except in compliance with the License. 
-#A copy of the License is located at http://aws.amazon.com/apache2.0/ or in the "license" file accompanying this file. 
-#This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+#Licensed under the Apache License, Version 2.0 (the "License").
+#You may not use this file except in compliance with the License.
+#A copy of the License is located at http://aws.amazon.com/apache2.0/ or in the "license" file accompanying this file.
+#This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #See the License for the specific language governing permissions and limitations under the License.
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
-  publics3bucketname:
+  appname:
     Type: String
-    Description: This parameter is the public s3 bucket that will be accessible from
-      anywhere.
+    Description: This parameter will be used for naming your CloudFormation stack, public s3 bucket and as a prefix as a prefix to identify all the Lambda functions, Cognito Pool and IAM Roles associated with your app.
     MinLength: '1'
     MaxLength: '21'
-    AllowedPattern: "^[A-Za-z0-9]+$"
-    ConstraintDescription: 'Malformed input-Parameter: publics3bucketname must match
-      pattern ^[A-Za-z0-9]+$'
+    AllowedPattern: "^[a-z0-9]+$"
+    ConstraintDescription: 'Malformed input-Parameter: appname must match pattern ^[a-z0-9]+$ with max length of 21 characters'
 Resources:
   s3standbucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName:
-        Ref: publics3bucketname
+        Ref: appname
       WebsiteConfiguration:
         IndexDocument: photoform.html
       AccessControl: Private
   s3xrayrekognition:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: imagestoragexray
+      BucketName:
+        Fn::Join:
+        - '-'
+        - - Ref: appname
+          - 'imagestoragexray'
       AccessControl: Private
       CorsConfiguration:
         CorsRules:
@@ -84,7 +86,11 @@ Resources:
       - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
       - arn:aws:iam::aws:policy/AWSLambdaExecute
       - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
-      RoleName: cognitoxrayrekognitionrole
+      RoleName:
+        Fn::Join:
+          - '-'
+          - - Ref: appname
+            - 'cognitoxrayrekognitionrole'
   LambdaIAMRole:
     Type: AWS::IAM::Role
     Properties:
@@ -104,7 +110,11 @@ Resources:
       - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
       - arn:aws:iam::aws:policy/AWSLambdaExecute
       - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
-      RoleName: lambdaxrayrekognitionrole
+      RoleName:
+        Fn::Join:
+          - '-'
+          - - Ref: appname
+            - 'lambdaxrayrekognitionrole'
   S3ManagedPolicyRWL:
     Type: "AWS::IAM::Policy"
     Properties:
@@ -122,8 +132,15 @@ Resources:
           - s3:PutObjectAcl
           - s3:DeleteObject
           Resource:
-          - arn:aws:s3:::imagestoragexray
-          - arn:aws:s3:::imagestoragexray/*
+            Fn::Join:
+                - ''
+                - - 'arn:aws:s3:::'
+                  - Ref: s3xrayrekognition
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: s3xrayrekognition
+                - "/*"
       PolicyName: "AmazonS3ReadWriteListAccess"
       Roles:
         -
@@ -133,7 +150,11 @@ Resources:
   CognitoUnauthPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: cognitounauthpoolxrayrekognition
+      IdentityPoolName:
+        Fn::Join:
+          - ''
+          - - Ref: appname
+            - 'cognitounauthxrayrekognition'
       AllowUnauthenticatedIdentities: true
   CognitoUnauthRoleattach:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
@@ -164,7 +185,11 @@ Resources:
   Xrayrekognitionlambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: xrayrekognition
+      FunctionName:
+        Fn::Join:
+          - '-'
+          - - Ref: appname
+            - 'xrayrekognition'
       Code:
         S3Bucket: lambdacodexrayrekognition
         S3Key: Archive.zip
@@ -180,7 +205,11 @@ Resources:
   Xraysearchceleblambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: xraysearchceleb
+      FunctionName:
+        Fn::Join:
+          - '-'
+          - - Ref: appname
+            - 'xraysearchceleb'
       Code:
         S3Bucket: lambdacodexrayrekognition
         S3Key: Archive.zip
